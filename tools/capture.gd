@@ -20,6 +20,7 @@ func _init() -> void:
 		if not auto:
 			game.player.lat = -0.3
 	game._start_ride()
+	game._lightning_timer = 9999.0
 	var t := 0.0
 	var n := 0
 	var next_shot := 2.5

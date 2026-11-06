@@ -1,8 +1,8 @@
 class_name GameUI
 extends CanvasLayer
 ## Touch controls + HUD + title / pause / game-over screens, built in code.
-## Left 55% of the screen: drag horizontally to steer (relative to where the
-## finger went down). Right side: HOP button and BRAKE button.
+## Portrait, one thumb: drag anywhere to steer (relative to where the finger went
+## down), a quick tap = HOP. HOP / BRAKE buttons sit in the bottom corners.
 ## Keyboard (desktop testing): A/D or arrows steer, Space hop, S/Down brake, Esc pause.
 
 signal start_requested
@@ -20,6 +20,7 @@ var state := "title"   # title | play | pause | over
 var _steer_touch := -1
 var _steer_origin := Vector2.ZERO
 var _steer_pos := Vector2.ZERO
+var _steer_t0 := 0.0
 var _brake_touch := -1
 var _key_steer := 0.0
 var _pad: Control
@@ -138,16 +139,16 @@ func _build_hud() -> void:
 	_hints.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_hints.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hud.add_child(_hints)
-	var hl := _center(_label("◀  DRAG TO STEER  ▶", 34, Color(1, 0.9, 0.85, 0.85)))
-	hl.set_anchors_preset(Control.PRESET_CENTER_LEFT)
-	hl.position = Vector2(40, 60)
-	hl.size = Vector2(420, 40)
+	var hl := _center(_label("◀  DRAG TO STEER  ▶", 36, Color(1, 0.9, 0.85, 0.9)))
+	hl.set_anchors_preset(Control.PRESET_CENTER)
+	hl.position = Vector2(-260, 120)
+	hl.size = Vector2(520, 40)
 	_glow(hl, Color(0, 0, 0, 0.8), 6, Color(0, 0, 0, 0), 0)
 	_hints.add_child(hl)
-	var hr := _center(_label("TAP HOP TO JUMP POTHOLES", 30, Color(1, 0.9, 0.85, 0.85)))
-	hr.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	hr.position = Vector2(-470, -10)
-	hr.size = Vector2(440, 40)
+	var hr := _center(_label("TAP TO HOP OVER POTHOLES", 30, Color(1, 0.9, 0.85, 0.9)))
+	hr.set_anchors_preset(Control.PRESET_CENTER)
+	hr.position = Vector2(-260, 165)
+	hr.size = Vector2(520, 40)
 	_glow(hr, Color(0, 0, 0, 0.8), 6, Color(0, 0, 0, 0), 0)
 	_hints.add_child(hr)
 
@@ -160,15 +161,15 @@ func _build_title() -> void:
 	_title.add_child(shade)
 	var v := _vbox(_title, 4)
 	v.offset_top = -10
-	_bar(v, 560)
-	var t := _center(_label("NIGHT RIDE", 118, Color(0.06, 0.0, 0.0), _title_font))
+	_bar(v, 540)
+	var t := _center(_label("NIGHT RIDE", 100, Color(0.06, 0.0, 0.0), _title_font))
 	_glow(t, RED, 5, Color(1.0, 0.08, 0.04, 0.75), 26)
 	v.add_child(t)
-	_bar(v, 560)
-	var sub := _center(_label("D O N ' T   S T O P   P E D A L I N G", 30, Color(0.95, 0.75, 0.7, 0.85)))
+	_bar(v, 540)
+	var sub := _center(_label("D O N ' T   S T O P   P E D A L I N G", 24, Color(0.95, 0.75, 0.7, 0.85)))
 	v.add_child(sub)
 	var sp := Control.new()
-	sp.custom_minimum_size = Vector2(0, 220)
+	sp.custom_minimum_size = Vector2(0, 640)
 	v.add_child(sp)
 	_tap_label = _center(_label("TAP TO RIDE", 46, Color(1, 0.92, 0.88)))
 	_glow(_tap_label, Color(0.2, 0, 0), 4, Color(1, 0.1, 0.05, 0.6), 12)
@@ -184,7 +185,7 @@ func _build_over() -> void:
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_over.add_child(shade)
 	var v := _vbox(_over, 2)
-	var t := _center(_label("WIPED OUT", 96, Color(0.06, 0, 0), _title_font))
+	var t := _center(_label("WIPED OUT", 86, Color(0.06, 0, 0), _title_font))
 	_glow(t, RED, 5, Color(1, 0.08, 0.04, 0.75), 24)
 	v.add_child(t)
 	_over_reason = _center(_label("", 32, Color(0.95, 0.8, 0.75)))
@@ -277,11 +278,11 @@ func _process(delta: float) -> void:
 
 func hop_center() -> Vector2:
 	var vs := get_viewport().get_visible_rect().size
-	return Vector2(vs.x - 150, vs.y - 150)
+	return Vector2(vs.x - 125, vs.y - 170)
 
 func brake_center() -> Vector2:
 	var vs := get_viewport().get_visible_rect().size
-	return Vector2(vs.x - 330, vs.y - 105)
+	return Vector2(115, vs.y - 150)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -311,6 +312,9 @@ func _touch(idx: int, pos: Vector2, pressed: bool) -> void:
 		if idx == _steer_touch:
 			_steer_touch = -1
 			steer = _key_steer
+			# Quick tap without dragging = hop.
+			if state == "play" and _t - _steer_t0 < 0.22 and pos.distance_to(_steer_origin) < 28.0:
+				hop_requested.emit()
 		if idx == _brake_touch:
 			_brake_touch = -1
 		return
@@ -329,14 +333,15 @@ func _touch(idx: int, pos: Vector2, pressed: bool) -> void:
 	if pos.x > vs.x - 120 and pos.y < 110:
 		pause_toggled.emit()
 		return
-	if pos.distance_to(brake_center()) < 85.0:
+	if pos.distance_to(brake_center()) < 80.0:
 		_brake_touch = idx
 		return
-	if pos.x > vs.x * 0.55:
+	if pos.distance_to(hop_center()) < 95.0:
 		hop_requested.emit()
 		return
 	if _steer_touch < 0:
 		_steer_touch = idx
+		_steer_t0 = _t
 		_steer_origin = pos
 		_steer_pos = pos
 		steer = 0.0
@@ -351,8 +356,8 @@ class TouchPad extends Control:
 		var brk := ui.brake_center()
 		var col := Color(1, 0.92, 0.88, 0.16)
 		var edge := Color(1, 0.3, 0.2, 0.55)
-		draw_circle(hop, 92, col)
-		draw_arc(hop, 92, 0, TAU, 48, edge, 3.0, true)
+		draw_circle(hop, 88, col)
+		draw_arc(hop, 88, 0, TAU, 48, edge, 3.0, true)
 		draw_string(GameUI.FONT_HUD, hop + Vector2(-34, 14), "HOP", HORIZONTAL_ALIGNMENT_CENTER, -1, 44, Color(1, 0.95, 0.9, 0.85))
 		var bcol := Color(1, 0.92, 0.88, 0.28) if ui.brake_held else col
 		draw_circle(brk, 62, bcol)

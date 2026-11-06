@@ -20,20 +20,29 @@ _Last updated: 2026-11-06_
 - FPS on the test phone? If < 50: lower `LIGHT_POOL`, disable headlight shadow, reduce spores, drop VHS aberration.
 - Title/HUD readable on the phone's screen size?
 
-## v0.2 — "feel" pass (after feedback)
+## v0.2 — look pass to match the reference reel ✅
+- [x] Portrait 720×1280, one-thumb controls (drag steer, tap hop, corner HOP/BRAKE)
+- [x] Rift sky: veined red wound in dark storm clouds, hot core
+- [x] Wet road: fake sky reflection + lamp streaks, wet/dry variation
+- [x] Procedural suburb: houses with lit windows/TV glow, porches, garages, power poles + wires + cobra lamps
+- [x] Rider outfit: navy jacket, rust backpack, olive pants, white high-tops; rift light casts rider shadow at camera
+- [x] Blue Gate landmark (brick building torn by blue light), once per suburb stretch
+- [ ] Gate is seen mostly side-on — could sit at the end of a straight so it's framed head-on
+
+## v0.3 — "feel" pass (after feedback)
 - [ ] Apply tuning from the phone test
 - [ ] Haptics on hop/land, screen-shake polish
 - [ ] Tilt-steer option + left-handed layout option
 - [ ] Settings: music/SFX volume, VHS effect on/off, graphics quality (low/med/high)
 - [ ] Performance overlay toggle (FPS) for testing builds
 
-## v0.3 — progression
+## v0.4 — progression
 - [ ] Currency (distance + pickups: batteries/coins/cassettes)
 - [ ] Garage screen: headlight / bike / walkie-talkie upgrades, cosmetics
 - [ ] The chase: entity behind you when you slow down
 - [ ] More hazards (manholes, power lines, car pull-outs, gaps), new zone ("flipped" town)
 
-## v0.4 — Play Store prep
+## v0.5 — Play Store prep
 - [ ] Release keystore, AAB export, versioning
 - [ ] Rewarded ad "continue" (AdMob plugin for Godot 4), privacy policy
 - [ ] Store listing art (screenshots via `tools/capture.gd`), trailer
@@ -41,6 +50,5 @@ _Last updated: 2026-11-06_
 
 ## Known issues / limits
 - Debug APK only (debug keystore committed in `tools/`; release keystore needed for Play).
-- Buildings are city-style row houses (KayKit City Builder) — reads as "downtown", not suburbs. A suburban house pack would help.
 - Collision is box-based in road space; fine for now, imprecise for diagonal objects.
 - Lateral offsets ignore curvature (fine at current curve strength).

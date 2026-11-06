@@ -53,16 +53,17 @@ func _ready() -> void:
 	headlight.spot_angle = 31.0
 	headlight.spot_angle_attenuation = 0.8
 	headlight.spot_attenuation = 0.9
-	headlight.shadow_enabled = true
+	headlight.shadow_enabled = false  # the rift light casts the (visible) shadow
 	headlight.shadow_bias = 0.05
 	model.get_lamp_anchor().add_child(headlight)
 	headlight.basis = Basis(Vector3.UP, PI) * Basis(Vector3.RIGHT, -0.075)
 	# A dim crimson rim light so the rider separates from the dark.
 	rim = OmniLight3D.new()
 	rim.light_color = Color(1.0, 0.72, 0.55)
-	rim.light_energy = 1.5
+	rim.light_energy = 2.2
 	rim.omni_range = 4.5
 	rim.omni_attenuation = 1.6
+	rim.light_specular = 0.0  # no hot spot on the wet road
 	rim.position = Vector3(0.6, 2.2, 1.9)
 	add_child(rim)
 

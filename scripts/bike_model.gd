@@ -300,13 +300,13 @@ func _build_rider() -> void:
 	_rider = Node3D.new()
 	_rider.name = "Rider"
 	add_child(_rider)
-	var coat := _mat(Color(0.62, 0.43, 0.1), 0.55)       # mustard raincoat
+	var coat := _mat(Color(0.1, 0.13, 0.25), 0.6)        # navy jacket
 	coat.metallic_specular = 0.6
-	var coat_dark := _mat(Color(0.42, 0.28, 0.06), 0.6)
-	var jeans := _mat(Color(0.09, 0.11, 0.18), 0.85)
-	var shoe := _mat(Color(0.78, 0.76, 0.72), 0.7)
-	var sole := _mat(Color(0.5, 0.05, 0.05), 0.7)
-	var pack := _mat(Color(0.16, 0.18, 0.12), 0.85)
+	var coat_dark := _mat(Color(0.07, 0.09, 0.17), 0.65)
+	var jeans := _mat(Color(0.2, 0.2, 0.13), 0.85)         # olive cargo pants
+	var shoe := _mat(Color(0.88, 0.86, 0.82), 0.6)         # white high-tops
+	var sole := _mat(Color(0.75, 0.73, 0.7), 0.7)
+	var pack := _mat(Color(0.5, 0.13, 0.08), 0.75)         # rust-red backpack
 	var skin := _mat(Color(0.55, 0.38, 0.3), 0.7)
 	var void_mat := _mat(Color(0, 0, 0), 1.0, true)
 	_capsule("torso", 0.13, coat).set_meta("scale", Vector3(1.12, 1.0, 0.82))
@@ -322,7 +322,7 @@ func _build_rider() -> void:
 	_sphere("hood", 0.145, coat, 1.08)
 	_sphere("face", 0.098, void_mat, 1.1)
 	_boxpart("backpack", Vector3(0.25, 0.3, 0.13), pack)
-	_boxpart("pack_flap", Vector3(0.26, 0.1, 0.14), _mat(Color(0.11, 0.12, 0.08), 0.85))
+	_boxpart("pack_flap", Vector3(0.26, 0.1, 0.14), _mat(Color(0.36, 0.09, 0.06), 0.8))
 
 func _place_limb(mi: MeshInstance3D, a: Vector3, b: Vector3) -> void:
 	var r: float = mi.get_meta("r")

@@ -5,11 +5,11 @@ Godot 4.6.2, GDScript, Compatibility renderer. One scene; everything is created 
 ```
 Main (game.gd)
 ├── WorldEnvironment (sky shader, fog, glow, tonemap)
-├── DirectionalLight3D "moon" (dim red, from the horizon ahead, no shadows)
+├── DirectionalLight3D "moon" = rift light (red, from the rift ahead, the only shadow caster)
 ├── World (world.gd)            chunks + props + obstacles + light pool + Watchers
 ├── Player (player.gd)
 │   ├── Model (bike_model.gd)   procedural BMX + rider (IK)  — rotated 180°, model space is +Z forward
-│   │   └── Front/LampAnchor/SpotLight3D  (headlight, the only shadow-casting light)
+│   │   └── Front/LampAnchor/SpotLight3D  (headlight, no shadows)
 │   └── OmniLight3D             warm back-fill so the rider reads against the dark
 ├── ChaseCamera (chase_camera.gd)
 ├── CanvasLayer(1) → ColorRect  VHS post shader (reads screen texture)
@@ -30,7 +30,7 @@ along the horizontal right vector, which is accurate for the gentle curvature us
 - Chunks are 24 m. Keep 1 behind / 9 ahead (~216 m, fog hides the edge).
 - Each chunk: road mesh (5 columns, rows every 2 m, UV = (lat, s) for the road shader) + terrain mesh
   (±90 m, vertex colour R = gravel shoulder) + props + obstacles. RNG seeded by chunk index → same world every run.
-- Zone = `floor(s / 420) % 3` → TOWN, WOODS, CEMETERY. `_decorate_*` place KayKit props via `_prop()`, which
+- Zone = `floor(s / 420) % 3` → TOWN (suburb, built by `suburb.gd`), WOODS, CEMETERY. `_decorate_*` place KayKit props via `_prop()`, which
   orients models in a flattened road frame and turns their +Z front toward the road.
 - **Obstacles** live in global 4 m slots (`_slot_has_obstacle(k)`), with no two consecutive slots filled.
   Each is a dict `{type, s, lat, half_w, half_len, height, node, hit}` appended to `World.obstacles`.
@@ -39,6 +39,17 @@ along the horizontal right vector, which is accurate for the gentle curvature us
   `flicker_burst()` makes them all stutter (Watcher, lightning).
 - **Watcher:** spawned ~7.5% of chunks after 260 m. When the player is 18 m away: `watcher_seen` signal →
   sting/buzz/glitch in `game.gd`, lights burst, figure hides after 0.45 s.
+
+## Wet road + sky (`road.gdshader`, `sky.gdshader`)
+The sky's rift is analytic: tangent-plane coords around `rift_dir`, hot core `exp(-r²·45)`, vein web from sharp
+single-octave ridged noise in warped space, masked by a broken-up region and cloud density. The road reflects the view
+vector and calls `sky_reflect()` (a cheaper copy of the same maths), weighted by Fresnel and a wet/dry mask, then adds
+vertical streaks for the pooled lamps. All emission, so no extra passes or reflection probes.
+
+## Suburb (`suburb.gd`)
+`Builder` appends primitive meshes into one `SurfaceTool` per material and commits a single `ArrayMesh` →
+≈5 draw calls per house regardless of detail. Power lines are built per chunk on global 32 m pole slots so wires
+connect across chunk borders; each pole's lamp registers into `World.lamps`.
 
 ## Player (`player.gd`)
 State in road coords: `s, lat, speed, air, vy`. `_physics_process` integrates speed toward `cruise_target()`

@@ -8,6 +8,14 @@ of the road. Keep pedaling. Don't crash.
 **Inspiration (vibe only, no IP):** 80s supernatural teen-adventure shows, VHS camcorder footage, synth scores.
 Never use names, logos, characters or music from any existing show.
 
+## Look target (owner's reference, Nov 2026)
+An AI-generated vertical cinematic reel: low chase-cam behind a kid on a BMX (navy jacket, red backpack, olive pants,
+white sneakers) on a **rain-soaked suburban road** that mirrors a **huge red rift in the storm clouds** with glowing
+branching veins; white 80s houses with warm windows, power poles + sagging wires, bare trees, parked old cars, a water
+tower, fallen trees and cracked asphalt; late shot: a brick building split by a **blue-white glowing gate**.
+What we match: portrait framing + low cam, rift sky, fake wet reflections + lamp streaks, suburb kit, rider outfit, Gate.
+What we can't (phone realtime): photoreal clouds/materials, true mirror reflections of houses/rider, motion blur.
+
 ## Pillars
 1. **Riding feels good** — responsive steering, satisfying hops/launches, readable obstacles. If this isn't fun, nothing else matters.
 2. **Dread, not jump-scare spam** — atmosphere does the work: light, fog, sound, the Watcher. Scares are rare and earned.
@@ -15,9 +23,9 @@ Never use names, logos, characters or music from any existing show.
 4. **Short sessions** — 30 s to 3 min runs, instant retry.
 
 ## The slice (v0.1) — what exists
-- Third-person chase camera; title screen orbits the rider (faceless hood stares at you).
+- Low third-person chase camera; title shot sits behind the rider looking into the rift.
 - Arcade BMX: auto-pedal to a cruise speed that rises with distance (27 → 56 km/h), steer, brake, bunny-hop.
-- Endless curving, rolling road; 3 zones cycling every 420 m: **Town → Woods → Cemetery**.
+- Endless curving, rolling road; 3 zones cycling every 420 m: **Suburb → Woods → Cemetery**. Portrait 9:16.
 - Obstacles: potholes, rubble, heaved road slabs (ramps → air), broken rough patches (shake + slow), ROAD CLOSED barricades, fallen trees.
   Early road (<260 m) only spawns potholes/ramps to teach hopping.
 - Horror layer: red storm sky with lightning + thunder, flickering/dying street lights, drifting spores, VHS overlay

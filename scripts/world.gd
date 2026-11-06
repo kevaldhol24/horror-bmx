@@ -17,6 +17,7 @@ const LIGHT_POOL := 5
 enum Zone { TOWN, WOODS, CEMETERY }
 
 var road_mat: ShaderMaterial
+var suburb := Suburb.new()
 var terrain_mat: ShaderMaterial
 var obstacles: Array = []        # dicts, see _add_obstacle
 var lamps: Array = []            # {pos, seed, dead}
@@ -239,34 +240,51 @@ func _prop(root: Node3D, path: String, s: float, lat: float, scale_: float, yaw 
 	return n
 
 func _decorate_town(root: Node3D, s0: float, rng: RandomNumberGenerator) -> void:
-	var houses := ["building_A_withoutBase", "building_B_withoutBase", "building_C_withoutBase",
-		"building_D_withoutBase", "building_E_withoutBase", "building_F_withoutBase",
-		"building_G_withoutBase", "building_H_withoutBase"]
+	# 80s suburb: procedural houses with lit windows, yards with bare trees,
+	# parked cars, power line with cobra street lamps on the right side.
 	for side in [-1.0, 1.0]:
-		var s := s0 + rng.randf_range(0.0, 4.0)
+		var s := s0 + rng.randf_range(0.0, 3.0)
 		while s < s0 + CHUNK_LEN:
-			if rng.randf() < 0.82:
-				var h: String = houses[rng.randi() % houses.size()]
-				_prop(root, CITY + h + ".gltf", s + 4.0, side * rng.randf_range(15.5, 18.0), 5.0, 0.0, true, 0.3)
-			s += rng.randf_range(10.0, 13.0)
-		# Sidewalk-side junk.
-		if rng.randf() < 0.5:
-			var junk := ["dumpster", "firehydrant", "bench", "trash_A", "box_A", "bush"]
-			_prop(root, CITY + junk[rng.randi() % junk.size()] + ".gltf", s0 + rng.randf_range(2, 22), side * rng.randf_range(8.5, 10.5), 5.0, rng.randf_range(-0.3, 0.3))
-	# Parked / abandoned cars on the verge.
-	if rng.randf() < 0.45:
-		var cars := ["car_sedan", "car_hatchback", "car_stationwagon", "car_police", "car_taxi"]
+			if rng.randf() < 0.88:
+				var house := suburb.make_house(rng)
+				root.add_child(house)
+				var hs := s + 6.0
+				var lat: float = side * rng.randf_range(17.0, 19.5)
+				var p := RoadPath.point(hs, lat)
+				p.y = RoadPath.ground_height(hs, lat) - 0.2
+				var rb := RoadPath.right(hs)
+				var face: Vector3 = -rb * side   # front faces the road
+				house.global_transform = Transform3D(Basis(Vector3.UP, atan2(face.x, face.z)), p)
+				# Bare tree in the yard.
+				if rng.randf() < 0.5:
+					_prop(root, HALL + "tree_dead_medium.gltf", hs + rng.randf_range(-5, 5), side * rng.randf_range(10.5, 12.5), 1.6 * rng.randf_range(0.8, 1.2), rng.randf() * TAU, false, 0.2)
+			s += rng.randf_range(15.0, 19.0)
+	# Parked 80s cars along the curb.
+	if rng.randf() < 0.55:
+		var cars := ["car_sedan", "car_stationwagon", "car_hatchback", "car_sedan"]
 		var side := -1.0 if rng.randf() < 0.5 else 1.0
-		_prop(root, CITY + cars[rng.randi() % cars.size()] + ".gltf", s0 + rng.randf_range(3, 20), side * rng.randf_range(7.6, 8.6), 4.6, rng.randf_range(-0.25, 0.25) + PI * 0.5, true)
-	# Street lights every ~26 m, alternating sides; some are dead.
-	var ls := s0 + fposmod(-s0, 26.0)
-	while ls < s0 + CHUNK_LEN:
-		var side := 1.0 if int(ls / 26.0) % 2 == 0 else -1.0
-		_streetlight(root, ls, side * 6.6, rng)
-		ls += 26.0
-	# Rare far landmark: water tower silhouette.
-	if rng.randf() < 0.08:
-		_prop(root, CITY + "watertower.gltf", s0 + 10, (-1.0 if rng.randf() < 0.5 else 1.0) * rng.randf_range(38, 55), 14.0, rng.randf() * TAU, false)
+		_prop(root, CITY + cars[rng.randi() % cars.size()] + ".gltf", s0 + rng.randf_range(3, 20), side * rng.randf_range(7.4, 8.2), 4.6, rng.randf_range(-0.12, 0.12) + PI * 0.5, true)
+	# Power line + street lamps (right side), plain street lights on the left.
+	var line := suburb.make_power_line(s0, s0 + CHUNK_LEN, 7.6, func(ls: float, pos: Vector3, k: int):
+		_lamp_bulb(root, pos)
+		lamps.append({"s": ls, "pos": pos - Vector3(0, 0.3, 0), "seed": float(k) * 13.7, "dead": (k * 7) % 9 == 4, "warm": true}))
+	if line:
+		root.add_child(line)
+	if rng.randf() < 0.15:
+		var side := -1.0 if rng.randf() < 0.5 else 1.0
+		_prop(root, CITY + "watertower.gltf", s0 + 10, side * rng.randf_range(32, 45), 9.0, rng.randf() * TAU, false)
+
+func _lamp_bulb(root: Node3D, pos: Vector3) -> void:
+	var bulb := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.16
+	sm.height = 0.14
+	sm.radial_segments = 8
+	sm.rings = 4
+	bulb.mesh = sm
+	bulb.material_override = mat_bulb
+	root.add_child(bulb)
+	bulb.global_position = pos - Vector3(0, 0.1, 0)
 
 func _decorate_woods(root: Node3D, s0: float, rng: RandomNumberGenerator) -> void:
 	var trees := ["tree_dead_large", "tree_dead_medium", "tree_dead_small", "tree_dead_large",
@@ -320,6 +338,20 @@ func _decorate_common(root: Node3D, s0: float, rng: RandomNumberGenerator, zone:
 	for i in 3:
 		var side := -1.0 if rng.randf() < 0.5 else 1.0
 		_prop(root, HALL + "tree_dead_large.gltf", s0 + rng.randf_range(0, CHUNK_LEN), side * rng.randf_range(60, 85), 3.2 * rng.randf_range(0.8, 1.3), rng.randf() * TAU, false, 0.5)
+	# The Gate: once per town stretch, a building torn open by blue light, seen down the road.
+	var zone_start: float = floor(s0 / ZONE_LEN) * ZONE_LEN
+	var gate_s: float = zone_start + 330.0
+	if zone == Zone.TOWN and gate_s >= s0 and gate_s < s0 + CHUNK_LEN and s0 > 100.0:
+		var g := suburb.make_gate_building(rng)
+		root.add_child(g)
+		var gside := 1.0 if rng.randf() < 0.5 else -1.0
+		var glat := gside * 21.0
+		var gp := RoadPath.point(gate_s, glat)
+		gp.y = RoadPath.ground_height(gate_s, glat)
+		var face: Vector3 = (RoadPath.point(gate_s - 30.0, 0.0) - gp)
+		face.y = 0.0
+		face = face.normalized()
+		g.global_transform = Transform3D(Basis(Vector3.UP, atan2(face.x, face.z)), gp)
 	# The Watcher: a tall shadow figure that stands at the roadside.
 	if s0 > 260.0 and rng.randf() < 0.075:
 		var side := -1.0 if rng.randf() < 0.5 else 1.0
@@ -458,6 +490,23 @@ func _update_lights(player_s: float, delta: float) -> void:
 		if _flicker_boost > 0.05:
 			out *= 0.05 if sin(_t * 41.0 + sd) > 0.2 - _flicker_boost * 0.6 else 1.0
 		l.light_energy = base * out * (0.92 + 0.08 * n)
+	# Feed the same (flickering) lights to the wet-road reflection streaks.
+	var pos := PackedVector3Array()
+	var cols := PackedColorArray()
+	for i in LIGHT_POOL:
+		if _light_assign[i] != null and _lights[i].light_energy > 0.05:
+			var lc: Color = _lights[i].light_color
+			pos.append(_lights[i].global_position + Vector3(0, 0.35, 0))
+			cols.append(Color(lc.r, lc.g * 0.85, lc.b * 0.7, _lights[i].light_energy))
+	while pos.size() < 6:
+		pos.append(Vector3.ZERO)
+		cols.append(Color(0, 0, 0, 0))
+	road_mat.set_shader_parameter("lamp_pos", pos)
+	var v4 := []
+	for c in cols:
+		v4.append(Vector4(c.r, c.g, c.b, c.a))
+	road_mat.set_shader_parameter("lamp_col", v4)
+	road_mat.set_shader_parameter("lamp_count", mini(LIGHT_POOL, 6))
 
 # ------------------------------------------------------------------ obstacles
 

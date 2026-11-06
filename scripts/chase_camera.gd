@@ -14,7 +14,9 @@ var _roll := 0.0
 
 func _ready() -> void:
 	_noise.frequency = 2.2
-	fov = 56.0
+	# Portrait game: FOV is horizontal (keep width) so the road always fits.
+	keep_aspect = Camera3D.KEEP_WIDTH
+	fov = 64.0
 	near = 0.08
 	far = 400.0
 
@@ -36,25 +38,28 @@ func _update(delta: float, instant: bool) -> void:
 	var fwd := -b.z
 	var want_pos: Vector3
 	var want_look: Vector3
-	var want_fov := 56.0
+	var want_fov := 64.0
 	match mode:
 		"orbit":
 			_orbit += delta * 0.16
-			var ang := 2.4 + sin(_orbit) * 0.9
-			var off := (b.x * sin(ang) + b.z * cos(ang)) * 4.1 + Vector3.UP * 1.25
+			# Behind the rider, looking into the rift (the poster shot), slowly swaying.
+			var ang := sin(_orbit) * 0.55
+			var off := (b.x * sin(ang) + b.z * cos(ang)) * 3.6 + Vector3.UP * 1.0
 			want_pos = tp + off
-			want_look = tp + Vector3.UP * 0.75
-			want_fov = 44.0
+			want_look = tp - b.z * 10.0 + Vector3.UP * 3.2
+			want_fov = 62.0
 		"chase":
 			var sp := clampf(target.speed / Player.MAX_CRUISE, 0.0, 1.0)
-			var back := lerpf(3.7, 4.6, sp)
-			want_pos = tp - fwd * back + Vector3.UP * lerpf(1.75, 1.95, sp) + b.x * target.lat_vel * -0.08
-			want_look = tp + fwd * 4.0 + Vector3.UP * 0.9
-			want_fov = lerpf(56.0, 66.0, sp)
+			# Low and close, like a chase-cam bike rig: rider fills the lower frame,
+			# the rift sky fills the top.
+			var back := lerpf(2.9, 3.5, sp)
+			want_pos = tp - fwd * back + Vector3.UP * lerpf(1.3, 1.4, sp) + b.x * target.lat_vel * -0.06
+			want_look = tp + fwd * 9.0 + Vector3.UP * 2.3
+			want_fov = lerpf(66.0, 76.0, sp)
 		"crash":
 			want_pos = global_position.lerp(tp - fwd * 4.5 + Vector3.UP * 2.6, delta * 0.8)
 			want_look = tp + Vector3.UP * 0.4
-			want_fov = 55.0
+			want_fov = 64.0
 	# Keep the camera above the ground.
 	var cam_s := target.s - (want_pos - tp).dot(fwd)
 	var g := RoadPath.ground_height(cam_s, target.lat) + 0.5

@@ -1,8 +1,9 @@
 # Night Ride (repo: horror-bmx)
 
 A third-person **horror BMX endless rider** for Android, made in **Godot 4.6** (Compatibility renderer).
-A faceless kid in a mustard raincoat rides a red BMX through a dead 1984 town under a blood-red sky —
-dodge potholes, hop rubble, launch off heaved road slabs, and don't look too long at the thing standing at the roadside.
+A kid in a navy jacket and red backpack rides a BMX through a rain-soaked 1984 suburb while a veined red rift tears
+open the sky — dodge potholes, hop rubble, launch off heaved road slabs, and don't look too long at the thing standing at the roadside.
+Portrait, one-thumb controls. Look target: the reference reel in `docs/DESIGN.md`.
 
 > Status: **vertical slice v0.1** — riding, controls, 3 zones, obstacles, crash/retry, atmosphere. No upgrades yet (by design — see `docs/ROADMAP.md`).
 
@@ -20,9 +21,9 @@ Builds are signed with the repo's debug keystore, so each new APK installs over 
 
 | Touch | Keyboard (desktop) | Action |
 |---|---|---|
-| Drag left/right on the left half | A / D, ← / → | Steer |
-| Tap **HOP** (or anywhere on the right half) | Space / W | Bunny-hop (clears potholes, rubble, logs) |
-| Hold **BRAKE** | S / ↓ | Brake |
+| Drag left/right anywhere | A / D, ← / → | Steer |
+| Quick tap anywhere, or **HOP** (bottom-right) | Space / W | Bunny-hop (clears potholes, rubble, logs) |
+| Hold **BRAKE** (bottom-left) | S / ↓ | Brake |
 | **II** top-right | Esc / P | Pause |
 
 Ride over the raised road slabs to jump. Broken patches shake you and slow you down. Barricades must be avoided.

@@ -3,6 +3,7 @@ extends Node3D
 ## wipe-out loop, resolves obstacle collisions and drives the horror FX.
 
 const SAVE_PATH := "user://save.cfg"
+const RIFT_DIR := Vector3(0.0, 0.42, -0.91)
 
 var world: World
 var player: Player
@@ -65,11 +66,11 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.32, 0.12, 0.12)
-	env.ambient_light_energy = 0.22
+	env.ambient_light_color = Color(0.2, 0.19, 0.32)
+	env.ambient_light_energy = 0.5
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_exposure = 1.05
+	env.tonemap_exposure = 1.15
 	env.tonemap_white = 6.0
 	env.glow_enabled = true
 	env.glow_intensity = 0.7
@@ -79,26 +80,31 @@ func _build_environment() -> void:
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-	env.fog_light_color = Color(0.26, 0.03, 0.028)
+	env.fog_light_color = Color(0.13, 0.06, 0.09)
 	env.fog_light_energy = 1.0
-	env.fog_density = 0.0105
-	env.fog_sky_affect = 0.15
+	env.fog_density = 0.011
+	env.fog_sky_affect = 0.0
 	env.fog_height = 6.0
 	env.fog_height_density = 0.0
 	env.adjustment_enabled = true
-	env.adjustment_contrast = 1.08
-	env.adjustment_saturation = 1.05
+	env.adjustment_contrast = 1.12
+	env.adjustment_saturation = 1.08
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 	moon = DirectionalLight3D.new()
-	moon.light_color = Color(1.0, 0.35, 0.28)
-	moon.light_energy = 0.45
-	moon.shadow_enabled = false
+	moon.light_color = Color(1.0, 0.25, 0.18)
+	moon.light_energy = 0.95
+	# Rift light from ahead: rim-lights the rider and throws his shadow back at the camera.
+	moon.shadow_enabled = true
+	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	moon.directional_shadow_max_distance = 28.0
+	moon.shadow_bias = 0.06
+	moon.shadow_opacity = 0.85
+	moon.light_specular = 0.15  # the road shader fakes the rift reflection itself
 	add_child(moon)
-	# Light comes from the red horizon ahead, so riders read as silhouettes.
-	moon.look_at_from_position(Vector3.ZERO, Vector3(-0.25, -0.35, 0.94), Vector3.UP)
-	sky_mat.set_shader_parameter("moon_dir", Vector3(0.25, 0.22, -0.94))
+	moon.look_at_from_position(Vector3.ZERO, -RIFT_DIR, Vector3.UP)
+	sky_mat.set_shader_parameter("rift_dir", RIFT_DIR)
 
 func _build_overlay() -> void:
 	var layer := CanvasLayer.new()
@@ -277,8 +283,9 @@ func _update_fx(delta: float) -> void:
 	_flash = maxf(0.0, _flash - delta * 2.2)
 	var f := _flash * (0.6 + 0.4 * sin(_flash * 40.0))
 	sky_mat.set_shader_parameter("flash", f)
-	moon.light_energy = 0.45 + f * 2.5
-	env.ambient_light_energy = 0.22 + f * 0.9
+	moon.light_energy = 0.95 + f * 2.5
+	env.ambient_light_energy = 0.5 + f * 0.9
+	world.road_mat.set_shader_parameter("flash", f)
 	# Danger pulse when close to the Watcher / after a crash.
 	_danger = maxf(0.0, _danger - delta * 0.6)
 	_glitch = maxf(0.0, _glitch - delta * 0.9)

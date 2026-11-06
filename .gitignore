@@ -1,0 +1,13 @@
+# Godot
+.godot/
+*.import.tmp
+/build/
+/android/
+export_credentials.cfg
+*.keystore
+*.jks
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+!tools/debug.keystore
